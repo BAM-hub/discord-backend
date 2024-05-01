@@ -31,6 +31,8 @@ func main() {
   router.POST("/user/create", user.CreateUser)
   router.GET("/user/list", user.GetUsers)
   router.POST("/profile/create", profile.CreateProfile)
+  router.GET("/profile/get/id", profile.GetProfileById)
+  router.GET("/profile/get/userId", profile.GetProfileByUserId)
   router.Run("localhost:8080")
 }
 

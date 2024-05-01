@@ -13,14 +13,15 @@ import (
 
 
 type Profile struct {
+	Id int64 `json:"id"`
 	UserId int64 `json:"userId"`
 	Avatar string `json:"avatar"`
 	DisplayName string `json:"displayName"`
 	UserName string `json:"userName"`
 	PhoneNumber string `json:"phoneNumber"`
 	Status string `json:"status"`
-	CustomStatus string `json:"customStatus"`
-	ClearAfter time.Time `json:"clearAfter"`
+	CustomStatus *string `json:"customStatus"`
+	ClearAfter *time.Time `json:"clearAfter"`
 }
 
 func CreateProfile(c *gin.Context) {
@@ -62,6 +63,8 @@ func CreateProfile(c *gin.Context) {
 		return
 	}
 
+	defer stmt.Close()
+
 	result, err :=  stmt.Exec(profile.UserName, profile.DisplayName, profile.Avatar, profile.PhoneNumber, profile.UserId)
 	if err != nil {
 		StatusHandler.HandleStatus(err, c)
@@ -86,6 +89,62 @@ func CreateProfile(c *gin.Context) {
 
 }
 
-// func GetProfile(c *gin.Context) {
-// 	db := c.MustGet("db").(*sql.DB)
-// }
+type GetProfileByIdRequest struct {
+	ProfileId int64 `json:"profileId"`
+}
+
+func GetProfileById(c *gin.Context) {
+	var getProfileOptions GetProfileByIdRequest
+	var profile Profile
+	err := c.BindJSON(&getProfileOptions)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{
+			"message": "expected userId or profileId",
+		})
+	}
+
+	db := c.MustGet("db").(*sql.DB)
+	row := db.QueryRow(
+		"select  id, avatar, displayName, userName, phoneNumber, status, customStatus, clearAfter, userId from profile where id = ?",
+		getProfileOptions.ProfileId,
+	)
+
+	if err =  row.Scan(&profile.Id, &profile.Avatar, &profile.DisplayName, &profile.UserName, &profile.PhoneNumber, &profile.Status, &profile.CustomStatus, &profile.ClearAfter, &profile.UserId); err != nil {				
+		StatusHandler.HandleStatus(err, c)
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"profile": profile,
+	})
+}
+
+type GetProfileByUserIdRequest struct {
+	UserId int64 `json:"userId"`
+}
+
+func GetProfileByUserId(c *gin.Context) {
+	var getProfileOptions GetProfileByUserIdRequest
+	var profile Profile
+	err := c.BindJSON(&getProfileOptions)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{
+			"message": "expected userId or profileId",
+		})
+	}
+
+	db := c.MustGet("db").(*sql.DB)
+	row := db.QueryRow(
+		"select  id, avatar, displayName, userName, phoneNumber, status, customStatus, clearAfter, userId from profile where userId = ?",
+		getProfileOptions.UserId,
+	)
+	
+	if err =  row.Scan(&profile); err != nil {
+		StatusHandler.HandleStatus(err, c)
+		return
+	}
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"profile": profile,
+	})
+
+}
