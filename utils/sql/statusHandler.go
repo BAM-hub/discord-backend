@@ -1,6 +1,7 @@
 package StatusHandler
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,10 +15,12 @@ func HandleStatus(err error, c *gin.Context) {
 			"message": "record refecernced dose not exist!",
 		})
 	} else if errNumber == 1062 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "user already exists"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "record already exists"})
 	} else if errNumber == 1364 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "required field missing"}) 
 	} else {
+		log.Println("err number", errNumber)
+
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{
 			"message": "internal server error result err",
 		})
