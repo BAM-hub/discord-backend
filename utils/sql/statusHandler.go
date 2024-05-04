@@ -1,6 +1,7 @@
 package StatusHandler
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 
@@ -9,6 +10,12 @@ import (
 )
 
 func HandleStatus(err error, c *gin.Context) {
+	if err == sql.ErrNoRows {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{
+			"message": "no results",
+		})	
+		return
+	}
 	errNumber := err.(*mysql.MySQLError).Number
 	if errNumber == 1452 {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{
