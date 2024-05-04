@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -94,29 +95,30 @@ type GetProfileByIdRequest struct {
 }
 
 func GetProfileById(c *gin.Context) {
-	var getProfileOptions GetProfileByIdRequest
-	var profile Profile
-	err := c.BindJSON(&getProfileOptions)
+	vars := c.Query("profileId")
+	id, err := strconv.ParseInt(vars, 10, 64)
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{
-			"message": "expected userId or profileId",
+			"error": "excpectd profileId as number",
 		})
 	}
+	var profile Profile
+
 
 	db := c.MustGet("db").(*sql.DB)
 	row := db.QueryRow(
 		"select  id, avatar, displayName, userName, phoneNumber, status, customStatus, clearAfter, userId from profile where id = ?",
-		getProfileOptions.ProfileId,
+		id,
 	)
+	
 
-	if err =  row.Scan(&profile.Id, &profile.Avatar, &profile.DisplayName, &profile.UserName, &profile.PhoneNumber, &profile.Status, &profile.CustomStatus, &profile.ClearAfter, &profile.UserId); err != nil {				
+	if err = row.Scan(&profile.Id, &profile.Avatar, &profile.DisplayName, &profile.UserName, &profile.PhoneNumber, &profile.Status, &profile.CustomStatus, &profile.ClearAfter, &profile.UserId); err != nil {				
+		println("error", err.Error())
 		StatusHandler.HandleStatus(err, c)
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, gin.H{
-		"profile": profile,
-	})
+	c.JSON(http.StatusOK, profile)
 }
 
 type GetProfileByUserIdRequest struct {
@@ -124,27 +126,24 @@ type GetProfileByUserIdRequest struct {
 }
 
 func GetProfileByUserId(c *gin.Context) {
-	var getProfileOptions GetProfileByUserIdRequest
-	var profile Profile
-	err := c.BindJSON(&getProfileOptions)
+	id, err := strconv.ParseInt(c.Param("userId"), 10, 64)
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{
-			"message": "expected userId or profileId",
+			"error": "excpectd userId as number",
 		})
 	}
+	var profile Profile
 
 	db := c.MustGet("db").(*sql.DB)
 	row := db.QueryRow(
 		"select  id, avatar, displayName, userName, phoneNumber, status, customStatus, clearAfter, userId from profile where userId = ?",
-		getProfileOptions.UserId,
+		id,
 	)
 	
 	if err =  row.Scan(&profile); err != nil {
 		StatusHandler.HandleStatus(err, c)
 		return
 	}
-	c.IndentedJSON(http.StatusOK, gin.H{
-		"profile": profile,
-	})
+	c.JSON(http.StatusOK,  profile)
 
 }

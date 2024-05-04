@@ -18,7 +18,7 @@ func main() {
   }
   router := gin.Default()
   router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowOrigins:     []string{"http://localhost:5173"},
 		AllowMethods:     []string{"*"},
 		AllowHeaders:     []string{"*"},
 		ExposeHeaders:    []string{"*"},
@@ -31,8 +31,8 @@ func main() {
   router.POST("/user/create", user.CreateUser)
   router.GET("/user/list", user.GetUsers)
   router.POST("/profile/create", profile.CreateProfile)
-  router.GET("/profile/get/id", profile.GetProfileById)
-  router.GET("/profile/get/userId", profile.GetProfileByUserId)
+  router.GET("/profile/getById", profile.GetProfileById)
+  router.GET("/profile/getByUserId", profile.GetProfileByUserId)
   router.Run("localhost:8080")
 }
 
